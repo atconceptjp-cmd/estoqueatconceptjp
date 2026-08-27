@@ -496,35 +496,18 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
   a.click();URL.revokeObjectURL(url);
 });
 
-/* ============== LOGIN / CADASTRO (continua local, por navegador) ============== */
-const USERS_KEY='at_concept_users_v1';
-const SESSION_KEY='at_concept_session_v1';
-let users=JSON.parse(localStorage.getItem(USERS_KEY)||'[]');
-
-function bufToHex(buf){return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');}
-async function hashPassword(password,saltHex){
-  const enc=new TextEncoder();
-  const bytes=enc.encode(saltHex+':'+password);
-  const hashBuf=await crypto.subtle.digest('SHA-256',bytes);
-  return bufToHex(hashBuf);
-}
-function randomSalt(){return bufToHex(crypto.getRandomValues(new Uint8Array(16)));}
+/* ============== LOGIN / CADASTRO (agora guardado na planilha, via backend) ============== */
+const SESSION_KEY='at_concept_session_v2'; // fica salvo até clicar em "Sair" (não depende mais só do navegador)
 function isValidEmail(email){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);}
 function isValidPassword(pw){return pw.length>=6 && /[a-zA-Z]/.test(pw) && /[0-9]/.test(pw);}
 
-function updateRegisterAvailability(){
-  const limitNote=document.getElementById('registerLimitNote');
-  const form=document.getElementById('registerForm');
-  if(users.length>=2){ limitNote.classList.remove('hidden'); form.classList.add('hidden'); }
-  else{ limitNote.classList.add('hidden'); form.classList.remove('hidden'); }
-}
 function showLogin(){document.getElementById('registerBox').classList.add('hidden');document.getElementById('loginBox').classList.remove('hidden');}
 function showRegister(){document.getElementById('loginBox').classList.add('hidden');document.getElementById('registerBox').classList.remove('hidden');}
 
 document.getElementById('showRegisterLink').addEventListener('click',showRegister);
 document.getElementById('showLoginLink').addEventListener('click',showLogin);
 document.getElementById('forgotLink').addEventListener('click',()=>{
-  alert('Para redefinir, é preciso apagar os usuários salvos neste navegador (isso não apaga produtos/vendas da planilha, só os logins). Combine com quem também tem acesso antes de fazer isso, pois vai remover o acesso das duas contas.');
+  alert('Para redefinir a senha, me chame para eu te ajudar a remover o usuário direto na planilha (aba Usuarios) e cadastrar de novo. Isso não mexe nos produtos/vendas.');
 });
 
 document.getElementById('registerForm').addEventListener('submit',async e=>{
@@ -534,19 +517,18 @@ document.getElementById('registerForm').addEventListener('submit',async e=>{
   const email=document.getElementById('regEmail').value.trim().toLowerCase();
   const pw=document.getElementById('regSenha').value;
   const pw2=document.getElementById('regSenha2').value;
-  if(users.length>=2){errEl.textContent='Limite de 2 usuários já atingido.';return;}
   if(!isValidEmail(email)){errEl.textContent='Informe um e-mail válido (ex.: nome@dominio.com).';return;}
-  if(users.some(u=>u.email===email)){errEl.textContent='Este e-mail já está cadastrado.';return;}
   if(!isValidPassword(pw)){errEl.textContent='A senha precisa ter 6+ caracteres, com letras e números.';return;}
   if(pw!==pw2){errEl.textContent='As senhas não coincidem.';return;}
-  const salt=randomSalt();
-  const hash=await hashPassword(pw,salt);
-  users.push({email,salt,hash});
-  localStorage.setItem(USERS_KEY,JSON.stringify(users));
-  document.getElementById('registerForm').reset();
-  updateRegisterAvailability();
-  showLogin();
-  document.getElementById('loginInfo').textContent='Usuário criado com sucesso! Faça login.';
+  const btn=e.target.querySelector('button[type=submit]');
+  btn.disabled=true;btn.textContent='Criando...';
+  try{
+    await apiPost('criarUsuario',{email,senha:pw});
+    document.getElementById('registerForm').reset();
+    showLogin();
+    document.getElementById('loginInfo').textContent='Usuário criado com sucesso! Faça login.';
+  }catch(err){ errEl.textContent=err.message; }
+  btn.disabled=false;btn.textContent='Criar usuário';
 });
 
 document.getElementById('loginForm').addEventListener('submit',async e=>{
@@ -555,16 +537,18 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
   errEl.textContent='';
   const email=document.getElementById('loginEmail').value.trim().toLowerCase();
   const pw=document.getElementById('loginSenha').value;
-  const user=users.find(u=>u.email===email);
-  if(!user){errEl.textContent='E-mail ou senha inválidos.';return;}
-  const hash=await hashPassword(pw,user.salt);
-  if(hash!==user.hash){errEl.textContent='E-mail ou senha inválidos.';return;}
-  sessionStorage.setItem(SESSION_KEY,email);
-  enterApp(email);
+  const btn=e.target.querySelector('button[type=submit]');
+  btn.disabled=true;btn.textContent='Entrando...';
+  try{
+    await apiPost('login',{email,senha:pw});
+    localStorage.setItem(SESSION_KEY,email);
+    enterApp(email);
+  }catch(err){ errEl.textContent=err.message; }
+  btn.disabled=false;btn.textContent='Entrar';
 });
 
 document.getElementById('logoutBtn').addEventListener('click',()=>{
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);
   location.reload();
 });
 
@@ -578,10 +562,8 @@ function enterApp(email){
 }
 
 (function initAuth(){
-  updateRegisterAvailability();
-  if(users.length===0){ showRegister(); }
-  const sess=sessionStorage.getItem(SESSION_KEY);
-  if(sess && users.some(u=>u.email===sess)){ enterApp(sess); }
+  const sess=localStorage.getItem(SESSION_KEY);
+  if(sess){ enterApp(sess); }
 })();
 </script>
 </body>
