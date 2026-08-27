@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AT CONCEPT JP • Estoque</title>
+<style>
+:root{
+  --bg:#0b0b0d; --card:#151519; --card2:#1c1c22; --line:#2b2b33;
+  --text:#f4f4f5; --muted:#a1a1aa; --gold:#d4af37; --danger:#ef4444;
+  --green:#22c55e; --blue:#60a5fa;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#080809,#111116);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.container{max-width:1200px;margin:auto;padding:24px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:46px;height:46px;border:1px solid #8f7622;border-radius:12px;display:grid;place-items:center;color:var(--gold);font-weight:800}
+h1{font-size:22px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:3px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tab{background:var(--card);border:1px solid var(--line);color:var(--muted);padding:10px 14px;border-radius:10px;cursor:pointer}
+.tab.active{color:#111;background:var(--gold);border-color:var(--gold);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.stat small{color:var(--muted)}.stat strong{display:block;font-size:25px;margin-top:7px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:18px}
+.panel h2{font-size:17px;margin:0 0 15px}
+.formgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.filters-row{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:12px;margin-bottom:14px}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+input,select{width:100%;background:#0e0e12;border:1px solid var(--line);color:var(--text);padding:11px 12px;border-radius:9px;outline:none}
+input:focus,select:focus{border-color:var(--gold)}
+.actions{display:flex;gap:8px;align-items:end}
+button{border:0;border-radius:9px;padding:11px 14px;font-weight:700;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.primary{background:var(--gold);color:#111}.secondary{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.danger{background:transparent;color:#f87171;border:1px solid #57252a}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px}
+th{color:var(--muted);font-weight:600}
+.badge{padding:5px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.ok{background:#12331f;color:#6ee7a0}.low{background:#3b2c0b;color:#facc15}.zero{background:#3b1215;color:#f87171}
+.badge-masc{background:#182848;color:#93c5fd}.badge-fem{background:#3a2030;color:#f9a8d4}.badge-unissex{background:#232326;color:#d4d4d8}
+.hidden{display:none !important}
+.empty{text-align:center;color:var(--muted);padding:28px}
+.kpis{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-bottom:18px}
+.kpis b{color:var(--text)}
+.userbox{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;background:var(--card);border:1px solid var(--line);padding:8px 12px;border-radius:10px}
+.backup-row{display:flex;gap:10px;flex-wrap:wrap}
+#syncStatus{font-size:12px;color:var(--muted)}
+.bar-row{margin-bottom:12px}
+.bar-row .row-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.bar-track{background:#0e0e12;border-radius:6px;height:10px;overflow:hidden}
+.bar-fill{background:var(--gold);height:100%}
+/* Login */
+.login-overlay{position:fixed;inset:0;background:radial-gradient(ellipse at top,#151519,#08080a);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.login-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:32px;max-width:380px;width:100%}
+.login-card h1{font-size:20px;margin:0 0 4px}
+.login-card .sub{margin-bottom:20px}
+.field-msg{min-height:16px;font-size:12px;margin:8px 0 4px}
+.error-msg{color:#f87171}
+.success-msg{color:#6ee7a0}
+.switch-link{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+.switch-link a{color:var(--gold);cursor:pointer;text-decoration:underline}
+.note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
+@media(max-width:850px){.grid,.formgrid{grid-template-columns:repeat(2,1fr)}.filters-row{grid-template-columns:1fr}}
+@media(max-width:560px){.container{padding:14px}.grid,.formgrid{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}.panel{overflow-x:auto}table{min-width:900px}.tabs{width:100%}.tab{flex:1}}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN / CADASTRO ===================== -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card" id="loginBox">
+    <h1>AT CONCEPT JP</h1>
+    <div class="sub">Acesso restrito • entre com seu e-mail e senha</div>
+    <div class="field-msg success-msg" id="loginInfo"></div>
+    <form id="loginForm">
+      <label>E-mail</label>
+      <input id="loginEmail" type="email" required placeholder="voce@exemplo.com">
+      <label style="margin-top:12px">Senha</label>
+      <input id="loginSenha" type="password" required placeholder="Sua senha">
+      <div class="field-msg error-msg" id="loginError"></div>
+      <button class="primary" style="width:100%;margin-top:8px" type="submit">Entrar</button>
+    </form>
+    <div class="switch-link">
+      <a id="forgotLink">Esqueci minha senha</a>
+    </div>
+    <div class="switch-link">
+      Ainda não tem conta? <a id="showRegisterLink">Criar usuário</a>
+    </div>
+  </div>
+
+  <div class="login-card hidden" id="registerBox">
+    <h1>Criar usuário</h1>
+    <div class="sub">Cadastro restrito a 2 pessoas (você e sua sócia)</div>
+    <form id="registerForm">
+      <label>E-mail</label>
+      <input id="regEmail" type="email" required placeholder="voce@exemplo.com">
+      <label style="margin-top:12px">Senha (letras + números, mín. 6 caracteres)</label>
+      <input id="regSenha" type="password" required placeholder="Ex.: perfume2026">
+      <label style="margin-top:12px">Confirmar senha</label>
+      <input id="regSenha2" type="password" required placeholder="Repita a senha">
+      <div class="field-msg error-msg" id="registerError"></div>
+      <button class="primary" style="width:100%;margin-top:8px" type="submit">Criar usuário</button>
+    </form>
+    <div class="note hidden" id="registerLimitNote">Limite de 2 usuários já atingido neste navegador. Se precisar trocar alguém, peça para quem já tem acesso.</div>
+    <div class="switch-link">
+      Já tem conta? <a id="showLoginLink">Fazer login</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div class="container hidden" id="appRoot">
+<header>
+  <div class="brand">
+    <div class="logo">AT</div>
+    <div><h1>AT CONCEPT JP</h1><div class="sub">Controle de estoque e vendas</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-page="estoque">Estoque</button>
+    <button class="tab" data-page="vendas">Vendas</button>
+    <button class="tab" data-page="relatorio">Relatório</button>
+    <button class="secondary" id="refreshBtn" type="button" title="Buscar dados mais recentes da planilha">🔄 Atualizar</button>
+    <span id="syncStatus"></span>
+    <div class="userbox">👤 <span id="userEmailDisplay"></span></div>
+    <button class="secondary" id="logoutBtn" type="button">Sair</button>
+  </div>
+</header>
+
+<section id="estoque">
+  <div class="grid">
+    <div class="stat"><small>Produtos cadastrados</small><strong id="totalProdutos">0</strong></div>
+    <div class="stat"><small>Unidades em estoque</small><strong id="totalUnidades">0</strong></div>
+    <div class="stat"><small>Valor investido</small><strong id="valorEstoque">R$ 0,00</strong></div>
+    <div class="stat"><small>Valor potencial de vendas</small><strong id="valorPotencial">R$ 0,00</strong></div>
+  </div>
+  <div class="kpis" id="kpisCategoria"></div>
+
+  <div class="panel">
+    <h2>Adicionar produto</h2>
+    <form id="produtoForm">
+      <div class="formgrid">
+        <div><label>Produto</label><input id="produto" required placeholder="Ex.: Lattafa Asad EDP"></div>
+        <div><label>Categoria</label>
+          <select id="categoria" required>
+            <option value="">Selecione</option>
+            <option>Masculino</option>
+            <option>Feminino</option>
+            <option>Unissex</option>
+          </select>
+        </div>
+        <div><label>Marca</label><input id="marca" list="marcasComuns" required placeholder="Ex.: Lattafa"></div>
+        <div><label>Quantidade</label><input id="quantidade" required type="number" min="0" step="1" placeholder="10"></div>
+        <div><label>Valor comprado (un.)</label><input id="valorCompra" required type="number" min="0" step="0.01" placeholder="120,00"></div>
+        <div><label>Valor de venda (un.)</label><input id="valorVenda" required type="number" min="0" step="0.01" placeholder="199,90"></div>
+        <div><label>Fornecedor</label><input id="fornecedor" placeholder="Nome do fornecedor"></div>
+        <div class="actions"><button class="primary" type="submit">+ Adicionar produto</button></div>
+      </div>
+      <datalist id="marcasComuns">
+        <option value="Lattafa"><option value="Armaf"><option value="Rasasi">
+        <option value="Afnan"><option value="Al Wataniah"><option value="Victoria's Secret">
+        <option value="Jean Paul Gaultier"><option value="Paco Rabanne"><option value="Ajmal">
+        <option value="Maison Alhambra"><option value="French Avenue">
+      </datalist>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h2>Produtos em estoque</h2>
+    <div class="filters-row">
+      <div><label>Categoria</label>
+        <select id="filtroCategoria">
+          <option value="">Todas as categorias</option>
+          <option>Masculino</option><option>Feminino</option><option>Unissex</option>
+        </select>
+      </div>
+      <div><label>Marca</label><select id="filtroMarca"><option value="">Todas as marcas</option></select></div>
+      <div><label>Buscar</label><input id="busca" placeholder="🔎 Produto ou fornecedor..."></div>
+    </div>
+    <div id="tabelaEstoque"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Backup</h2>
+    <div class="backup-row">
+      <button class="secondary" type="button" id="exportBtn">⬇️ Exportar cópia local (.json)</button>
+    </div>
+    <div class="note">Os dados agora ficam na sua planilha do Google Sheets (é o backup "de verdade" — dá pra abrir, filtrar e exportar direto por lá também). Este botão só salva uma cópia rápida do que está na tela agora.</div>
+  </div>
+</section>
+
+<section id="vendas" class="hidden">
+  <div class="grid">
+    <div class="stat"><small>Total vendido</small><strong id="totalVendido">R$ 0,00</strong></div>
+    <div class="stat"><small>Itens vendidos</small><strong id="itensVendidos">0</strong></div>
+    <div class="stat"><small>Custo dos vendidos</small><strong id="custoVendido">R$ 0,00</strong></div>
+    <div class="stat"><small>Lucro bruto</small><strong id="lucroVendido">R$ 0,00</strong></div>
+  </div>
+
+  <div class="panel">
+    <h2>Registrar venda</h2>
+    <form id="vendaForm">
+      <div class="formgrid">
+        <div><label>Produto</label><select id="produtoVenda" required></select></div>
+        <div><label>Quantidade vendida</label><input id="qtdVenda" required type="number" min="1" step="1" placeholder="1"></div>
+        <div><label>Valor de venda (un.)</label><input id="precoVenda" required type="number" min="0" step="0.01" placeholder="199,90"></div>
+        <div><label>Cliente (opcional)</label><input id="clienteVenda" placeholder="Nome do cliente"></div>
+        <div><label>Data</label><input id="dataVenda" type="date" required></div>
+        <div class="actions"><button class="primary" type="submit">Registrar venda</button></div>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel">
+    <h2>Histórico de vendas</h2>
+    <div id="tabelaVendas"></div>
+  </div>
+</section>
+
+<section id="relatorio" class="hidden">
+  <div class="panel">
+    <h2>Relatório mensal</h2>
+    <div class="formgrid" style="grid-template-columns:220px 1fr">
+      <div><label>Mês de referência</label><input type="month" id="mesRelatorio"></div>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="stat"><small>Faturamento no mês</small><strong id="relFaturamento">R$ 0,00</strong></div>
+    <div class="stat"><small>Custo no mês</small><strong id="relCusto">R$ 0,00</strong></div>
+    <div class="stat"><small>Lucro no mês</small><strong id="relLucro">R$ 0,00</strong></div>
+    <div class="stat"><small>Itens vendidos</small><strong id="relItens">0</strong></div>
+  </div>
+  <div class="panel">
+    <h2>Por categoria</h2>
+    <div id="relCategorias"></div>
+  </div>
+  <div class="panel">
+    <h2>Por marca</h2>
+    <div id="relMarcas"></div>
+  </div>
+</section>
+</div>
+
+<script>
+/* =====================================================================
+   CONFIGURAÇÃO DO BACKEND (Google Sheets via Google Apps Script)
+   1) Cole aqui a URL do seu Web App (termina em /exec)
+   2) Defina o mesmo "token" aqui e no Code.gs do Apps Script
+   ===================================================================== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbzAPY3KIkzWUYXUm3_cxWGOU9SS9PEfrUhKCgInYa7UvRPKdzpNS9mfQ9Sn16jBB4cukQ/exec'; // ex: https://script.google.com/macros/s/AKfycb.../exec
+const API_TOKEN = 'Alf3107@'; // mesma senha usada no Code.gs
+
+let data = { produtos: [], vendas: [] };
+
+const brl=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function stockBadge(q){return q===0?'<span class="badge zero">ZERADO</span>':q<=2?'<span class="badge low">BAIXO</span>':'<span class="badge ok">OK</span>';}
+function categoriaBadge(cat){
+  if(cat==='Masculino') return '<span class="badge badge-masc">Masculino</span>';
+  if(cat==='Feminino') return '<span class="badge badge-fem">Feminino</span>';
+  if(cat==='Unissex') return '<span class="badge badge-unissex">Unissex</span>';
+  return '-';
+}
+
+/* ============== CHAMADAS AO BACKEND (Google Sheets) ============== */
+async function apiGet(action, params={}){
+  const url=new URL(API_URL);
+  url.searchParams.set('action',action);
+  url.searchParams.set('token',API_TOKEN);
+  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
+  const res=await fetch(url.toString());
+  const json=await res.json();
+  if(json.error) throw new Error(json.error);
+  return json;
+}
+async function apiPost(action, payload={}){
+  const res=await fetch(API_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action, token:API_TOKEN, ...payload})
+  });
+  const json=await res.json();
+  if(json.error) throw new Error(json.error);
+  return json;
+}
+
+function normalizarProduto(p){
+  return {...p,
+    quantidade:Number(p.quantidade)||0,
+    valorCompra:Number(p.valorCompra)||0,
+    valorVenda:Number(p.valorVenda)||0
+  };
+}
+function normalizarVenda(v){
+  return {...v,
+    quantidade:Number(v.quantidade)||0,
+    preco:Number(v.preco)||0,
+    custo:Number(v.custo)||0,
+    data: v.data ? String(v.data).slice(0,10) : ''
+  };
+}
+
+async function carregarDados(){
+  const status=document.getElementById('syncStatus');
+  status.textContent='Sincronizando...';
+  try{
+    const resp=await apiGet('getData');
+    data.produtos=(resp.produtos||[]).map(normalizarProduto);
+    data.vendas=(resp.vendas||[]).map(normalizarVenda);
+    status.textContent='Sincronizado ✓ '+new Date().toLocaleTimeString('pt-BR');
+  }catch(err){
+    status.textContent='⚠️ Não foi possível sincronizar (verifique a internet e a URL configurada).';
+  }
+  render();
+}
+
+/* ============== RENDER ============== */
+function populateMarcaFilter(){
+  const sel=document.getElementById('filtroMarca');
+  const atual=sel.value;
+  const marcas=[...new Set(data.produtos.map(x=>x.marca).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  sel.innerHTML='<option value="">Todas as marcas</option>'+marcas.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+  if(marcas.includes(atual)) sel.value=atual;
+}
+
+function render(){
+  const p=data.produtos, v=data.vendas;
+  document.getElementById('totalProdutos').textContent=p.length;
+  document.getElementById('totalUnidades').textContent=p.reduce((a,x)=>a+Number(x.quantidade),0);
+  document.getElementById('valorEstoque').textContent=brl(p.reduce((a,x)=>a+Number(x.quantidade)*Number(x.valorCompra),0));
+  document.getElementById('valorPotencial').textContent=brl(p.reduce((a,x)=>a+Number(x.quantidade)*Number(x.valorVenda),0));
+
+  const qtdPorCategoria=cat=>p.filter(x=>x.categoria===cat).reduce((a,x)=>a+Number(x.quantidade),0);
+  document.getElementById('kpisCategoria').innerHTML=
+    `<span>Masculino: <b>${qtdPorCategoria('Masculino')}</b> un.</span>
+     <span>Feminino: <b>${qtdPorCategoria('Feminino')}</b> un.</span>
+     <span>Unissex: <b>${qtdPorCategoria('Unissex')}</b> un.</span>`;
+
+  populateMarcaFilter();
+  const busca=(document.getElementById('busca').value||'').toLowerCase();
+  const filtroCategoria=document.getElementById('filtroCategoria').value;
+  const filtroMarca=document.getElementById('filtroMarca').value;
+  const filtrados=p.filter(x=>
+    (x.nome+' '+x.fornecedor).toLowerCase().includes(busca) &&
+    (!filtroCategoria || x.categoria===filtroCategoria) &&
+    (!filtroMarca || x.marca===filtroMarca)
+  );
+
+  document.getElementById('tabelaEstoque').innerHTML=filtrados.length?`
+  <table><thead><tr><th>Produto</th><th>Categoria</th><th>Marca</th><th>Qtd.</th><th>Compra/un.</th><th>Venda/un.</th><th>Fornecedor</th><th>Margem</th><th>Status</th><th>Ações</th></tr></thead><tbody>
+  ${filtrados.map(x=>{
+    const margem=Number(x.valorVenda)-Number(x.valorCompra);
+    return `<tr>
+      <td><b>${escapeHtml(x.nome)}</b></td>
+      <td>${categoriaBadge(x.categoria)}</td>
+      <td>${escapeHtml(x.marca||'-')}</td>
+      <td>${x.quantidade}</td><td>${brl(x.valorCompra)}</td><td>${brl(x.valorVenda)}</td>
+      <td>${escapeHtml(x.fornecedor||'-')}</td><td>${brl(margem)} (${Number(x.valorVenda)?((margem/Number(x.valorVenda))*100).toFixed(1):0}%)</td>
+      <td>${stockBadge(Number(x.quantidade))}</td>
+      <td><button class="danger" onclick="excluirProduto('${x.id}')">Excluir</button></td>
+    </tr>`}).join('')}</tbody></table>`:'<div class="empty">Nenhum produto encontrado.</div>';
+
+  const select=document.getElementById('produtoVenda');
+  select.innerHTML=p.length?p.map(x=>`<option value="${x.id}">${escapeHtml(x.nome)} • estoque: ${x.quantidade}</option>`).join(''):'<option value="">Cadastre um produto primeiro</option>';
+  const vTotal=v.reduce((a,x)=>a+Number(x.quantidade)*Number(x.preco),0);
+  const cTotal=v.reduce((a,x)=>a+Number(x.quantidade)*Number(x.custo),0);
+  document.getElementById('totalVendido').textContent=brl(vTotal);
+  document.getElementById('itensVendidos').textContent=v.reduce((a,x)=>a+Number(x.quantidade),0);
+  document.getElementById('custoVendido').textContent=brl(cTotal);
+  document.getElementById('lucroVendido').textContent=brl(vTotal-cTotal);
+
+  document.getElementById('tabelaVendas').innerHTML=v.length?`
+  <table><thead><tr><th>Data</th><th>Produto</th><th>Qtd.</th><th>Venda/un.</th><th>Total</th><th>Cliente</th><th>Lucro</th><th>Ação</th></tr></thead><tbody>
+  ${[...v].reverse().map(x=>`<tr><td>${x.data?new Date(x.data+'T00:00:00').toLocaleDateString('pt-BR'):'-'}</td><td>${escapeHtml(x.nome)}</td><td>${x.quantidade}</td><td>${brl(x.preco)}</td><td><b>${brl(x.quantidade*x.preco)}</b></td><td>${escapeHtml(x.cliente||'-')}</td><td>${brl(x.quantidade*(x.preco-x.custo))}</td><td><button class="danger" onclick="excluirVenda('${x.id}')">Excluir</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nenhuma venda registrada.</div>';
+
+  gerarRelatorio();
+}
+
+/* ============== RELATÓRIO MENSAL ============== */
+function agrupar(vendasMes, chave){
+  const map={};
+  vendasMes.forEach(v=>{
+    const k=v[chave]||'Não informado';
+    if(!map[k]) map[k]={qtd:0,valor:0};
+    map[k].qtd+=Number(v.quantidade);
+    map[k].valor+=Number(v.quantidade)*Number(v.preco);
+  });
+  return Object.entries(map).sort((a,b)=>b[1].valor-a[1].valor);
+}
+function barraHtml(lista){
+  if(!lista.length) return '<div class="empty">Nenhuma venda no período.</div>';
+  const max=Math.max(...lista.map(x=>x[1].valor),1);
+  return lista.map(([nome,v])=>`
+    <div class="bar-row">
+      <div class="row-top"><span>${escapeHtml(nome)}</span><span><b>${brl(v.valor)}</b> • ${v.qtd} un.</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(v.valor/max*100).toFixed(1)}%"></div></div>
+    </div>`).join('');
+}
+function gerarRelatorio(){
+  const mesEl=document.getElementById('mesRelatorio');
+  const mes=mesEl.value;
+  const vendasMes=mes?data.vendas.filter(v=>v.data && v.data.slice(0,7)===mes):data.vendas;
+  const fat=vendasMes.reduce((a,x)=>a+Number(x.quantidade)*Number(x.preco),0);
+  const custo=vendasMes.reduce((a,x)=>a+Number(x.quantidade)*Number(x.custo),0);
+  document.getElementById('relFaturamento').textContent=brl(fat);
+  document.getElementById('relCusto').textContent=brl(custo);
+  document.getElementById('relLucro').textContent=brl(fat-custo);
+  document.getElementById('relItens').textContent=vendasMes.reduce((a,x)=>a+Number(x.quantidade),0);
+  document.getElementById('relCategorias').innerHTML=barraHtml(agrupar(vendasMes,'categoria'));
+  document.getElementById('relMarcas').innerHTML=barraHtml(agrupar(vendasMes,'marca'));
+}
+
+/* ============== AÇÕES (produto / venda) ============== */
+async function excluirProduto(id){
+  const p=data.produtos.find(x=>x.id===id);
+  if(!p)return;
+  if(data.vendas.some(v=>v.produtoId===id)){alert('Este produto possui vendas registradas. Exclua as vendas primeiro se quiser removê-lo.');return;}
+  if(!confirm(`Excluir "${p.nome}" do estoque?`))return;
+  try{ await apiPost('excluirProduto',{id}); await carregarDados(); }
+  catch(err){ alert('Erro ao excluir produto: '+err.message); }
+}
+async function excluirVenda(id){
+  if(!confirm('Excluir esta venda e devolver a quantidade ao estoque?'))return;
+  try{ await apiPost('excluirVenda',{id}); await carregarDados(); }
+  catch(err){ alert('Erro ao excluir venda: '+err.message); }
+}
+
+document.getElementById('produtoForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const btn=e.target.querySelector('button[type=submit]');
+  const produtoObj={
+    id:uid(),
+    nome:document.getElementById('produto').value.trim(),
+    categoria:document.getElementById('categoria').value,
+    marca:document.getElementById('marca').value.trim(),
+    quantidade:Number(document.getElementById('quantidade').value),
+    valorCompra:Number(document.getElementById('valorCompra').value),
+    valorVenda:Number(document.getElementById('valorVenda').value),
+    fornecedor:document.getElementById('fornecedor').value.trim()
+  };
+  btn.disabled=true;btn.textContent='Salvando...';
+  try{
+    await apiPost('addProduto',{produto:produtoObj});
+    e.target.reset();
+    await carregarDados();
+  }catch(err){ alert('Erro ao salvar produto: '+err.message); }
+  btn.disabled=false;btn.textContent='+ Adicionar produto';
+});
+
+document.getElementById('vendaForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const btn=e.target.querySelector('button[type=submit]');
+  const produtoId=document.getElementById('produtoVenda').value;
+  const qtd=Number(document.getElementById('qtdVenda').value);
+  const p=data.produtos.find(x=>x.id===produtoId);
+  if(!p)return alert('Selecione um produto.');
+  if(qtd>Number(p.quantidade))return alert(`Estoque insuficiente. Disponível: ${p.quantidade} unidade(s).`);
+  const vendaObj={
+    id:uid(), produtoId:p.id, nome:p.nome, categoria:p.categoria, marca:p.marca,
+    quantidade:qtd, preco:Number(document.getElementById('precoVenda').value),
+    custo:Number(p.valorCompra), cliente:document.getElementById('clienteVenda').value.trim(),
+    data:document.getElementById('dataVenda').value
+  };
+  btn.disabled=true;btn.textContent='Salvando...';
+  try{
+    await apiPost('registrarVenda',{venda:vendaObj, produtoId:p.id, quantidadeVendida:qtd});
+    e.target.reset();
+    document.getElementById('dataVenda').value=new Date().toISOString().slice(0,10);
+    await carregarDados();
+  }catch(err){ alert('Erro ao registrar venda: '+err.message); }
+  btn.disabled=false;btn.textContent='Registrar venda';
+});
+
+document.getElementById('busca').addEventListener('input',render);
+document.getElementById('filtroCategoria').addEventListener('change',render);
+document.getElementById('filtroMarca').addEventListener('change',render);
+document.getElementById('mesRelatorio').addEventListener('change',gerarRelatorio);
+document.getElementById('refreshBtn').addEventListener('click',carregarDados);
+
+document.querySelectorAll('.tab[data-page]').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.tab[data-page]').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  ['estoque','vendas','relatorio'].forEach(id=>{
+    document.getElementById(id).classList.toggle('hidden', btn.dataset.page!==id);
+  });
+}));
+
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`copia_at_concept_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(url);
+});
+
+/* ============== LOGIN / CADASTRO (continua local, por navegador) ============== */
+const USERS_KEY='at_concept_users_v1';
+const SESSION_KEY='at_concept_session_v1';
+let users=JSON.parse(localStorage.getItem(USERS_KEY)||'[]');
+
+function bufToHex(buf){return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');}
+async function hashPassword(password,saltHex){
+  const enc=new TextEncoder();
+  const bytes=enc.encode(saltHex+':'+password);
+  const hashBuf=await crypto.subtle.digest('SHA-256',bytes);
+  return bufToHex(hashBuf);
+}
+function randomSalt(){return bufToHex(crypto.getRandomValues(new Uint8Array(16)));}
+function isValidEmail(email){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);}
+function isValidPassword(pw){return pw.length>=6 && /[a-zA-Z]/.test(pw) && /[0-9]/.test(pw);}
+
+function updateRegisterAvailability(){
+  const limitNote=document.getElementById('registerLimitNote');
+  const form=document.getElementById('registerForm');
+  if(users.length>=2){ limitNote.classList.remove('hidden'); form.classList.add('hidden'); }
+  else{ limitNote.classList.add('hidden'); form.classList.remove('hidden'); }
+}
+function showLogin(){document.getElementById('registerBox').classList.add('hidden');document.getElementById('loginBox').classList.remove('hidden');}
+function showRegister(){document.getElementById('loginBox').classList.add('hidden');document.getElementById('registerBox').classList.remove('hidden');}
+
+document.getElementById('showRegisterLink').addEventListener('click',showRegister);
+document.getElementById('showLoginLink').addEventListener('click',showLogin);
+document.getElementById('forgotLink').addEventListener('click',()=>{
+  alert('Para redefinir, é preciso apagar os usuários salvos neste navegador (isso não apaga produtos/vendas da planilha, só os logins). Combine com quem também tem acesso antes de fazer isso, pois vai remover o acesso das duas contas.');
+});
+
+document.getElementById('registerForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const errEl=document.getElementById('registerError');
+  errEl.textContent='';
+  const email=document.getElementById('regEmail').value.trim().toLowerCase();
+  const pw=document.getElementById('regSenha').value;
+  const pw2=document.getElementById('regSenha2').value;
+  if(users.length>=2){errEl.textContent='Limite de 2 usuários já atingido.';return;}
+  if(!isValidEmail(email)){errEl.textContent='Informe um e-mail válido (ex.: nome@dominio.com).';return;}
+  if(users.some(u=>u.email===email)){errEl.textContent='Este e-mail já está cadastrado.';return;}
+  if(!isValidPassword(pw)){errEl.textContent='A senha precisa ter 6+ caracteres, com letras e números.';return;}
+  if(pw!==pw2){errEl.textContent='As senhas não coincidem.';return;}
+  const salt=randomSalt();
+  const hash=await hashPassword(pw,salt);
+  users.push({email,salt,hash});
+  localStorage.setItem(USERS_KEY,JSON.stringify(users));
+  document.getElementById('registerForm').reset();
+  updateRegisterAvailability();
+  showLogin();
+  document.getElementById('loginInfo').textContent='Usuário criado com sucesso! Faça login.';
+});
+
+document.getElementById('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const errEl=document.getElementById('loginError');
+  errEl.textContent='';
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pw=document.getElementById('loginSenha').value;
+  const user=users.find(u=>u.email===email);
+  if(!user){errEl.textContent='E-mail ou senha inválidos.';return;}
+  const hash=await hashPassword(pw,user.salt);
+  if(hash!==user.hash){errEl.textContent='E-mail ou senha inválidos.';return;}
+  sessionStorage.setItem(SESSION_KEY,email);
+  enterApp(email);
+});
+
+document.getElementById('logoutBtn').addEventListener('click',()=>{
+  sessionStorage.removeItem(SESSION_KEY);
+  location.reload();
+});
+
+function enterApp(email){
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.getElementById('appRoot').classList.remove('hidden');
+  document.getElementById('userEmailDisplay').textContent=email;
+  document.getElementById('dataVenda').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mesRelatorio').value=new Date().toISOString().slice(0,7);
+  carregarDados();
+}
+
+(function initAuth(){
+  updateRegisterAvailability();
+  if(users.length===0){ showRegister(); }
+  const sess=sessionStorage.getItem(SESSION_KEY);
+  if(sess && users.some(u=>u.email===sess)){ enterApp(sess); }
+})();
+</script>
+</body>
+</html>
